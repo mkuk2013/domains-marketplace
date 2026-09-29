@@ -20,7 +20,7 @@ function esc(value) {
   return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 }
 
-function domainFor(label) { return `${label}.domains.weblitex.com`; }
+function domainFor(label) { return `${label}.weblitex.com`; }
 
 function showToast(message) {
   const toast = $("#toast");
@@ -106,21 +106,21 @@ function renderDns(request) {
   const rows = records.length ? records.map((record) => `
     <div class="dns-item">
       <span class="dns-type-pill">${esc(record.record_type)}</span>
-      <span>${esc(record.host === "@" ? "@ (root)" : record.host)}${record.record_type === "MX" ? ` · ${esc(record.priority)}` : ""}</span>
+      <span><code>${esc(record.host === "@" ? request.label : `${record.host}.${request.label}`)}.weblitex.com</code>${record.record_type === "MX" ? ` · ${esc(record.priority)}` : ""}</span>
       <code>${esc(record.value)}</code>
       <span class="dns-actions"><button type="button" data-edit-record="${esc(record.id)}" data-request="${esc(request.id)}">Edit</button><button type="button" data-delete-record="${esc(record.id)}" data-request="${esc(request.id)}">Delete</button></span>
     </div>`).join("") : `<p class="dns-empty">No records yet. Add the destination you want this name to resolve to.</p>`;
   const form = APP_CONFIG.dnsPublishingExpected ? `
     <form class="dns-form" data-dns-form="${esc(request.id)}">
       <label>Type<select name="type"><option>A</option><option>AAAA</option><option>CNAME</option><option>TXT</option><option>MX</option></select></label>
-      <label>Host<input name="host" value="@" maxlength="190" required></label>
+      <label>Host (relative)<input name="host" value="@" maxlength="190" placeholder="@ or www" required></label>
       <label>Value<input name="value" maxlength="2000" placeholder="IP / hostname / text" required></label>
       <label>TTL<input name="ttl" type="number" min="60" max="86400" value="3600" required></label>
       <label>MX priority<input name="priority" type="number" min="0" max="65535" value="10"></label>
       <button class="button button-primary" type="submit">Add record</button>
       <input type="hidden" name="record_id" value="">
     </form>` : `<p class="dns-empty">DNS publishing is paused until the administrator completes provider setup.</p>`;
-  return `<div class="dns-management"><strong>DNS records for ${esc(domainFor(request.label))}</strong><div class="dns-list">${rows}</div>${form}</div>`;
+  return `<div class="dns-management"><strong>DNS records for ${esc(domainFor(request.label))}</strong><p class="dns-empty">Host is relative to your purchased name: @ means the name itself, and www means a name such as www.ali.weblitex.com. The backend writes only names within the fixed weblitex.com zone.</p><div class="dns-list">${rows}</div>${form}</div>`;
 }
 
 function paymentMarkup(request) {

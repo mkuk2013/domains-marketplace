@@ -1,44 +1,44 @@
 # Weblitex Domains
 
-A mobile-first self-service marketplace for names under `domains.weblitex.com`. The original visual design, checkout explanation, account portal, and DNS manager are built as a small static site backed by Supabase Auth, Postgres, and one Edge Function.
+A mobile-first marketplace for **one product only: a prefix subdomain directly under the registered root `weblitex.com`**. A buyer enters a single label such as `ali`; the app always appends `.weblitex.com`, yielding `ali.weblitex.com`. The product is not `ali.domains.weblitex.com`, and buyers do not enter or choose a root domain. The original static site uses Supabase Auth, Postgres, and one Edge Function.
 
 ## What the site supports
 
-- Public name availability checks (marketplace reservations plus, when configured, a check for existing records in the Spaceship zone).
-- Email/password login; public account creation stays disabled until production email delivery is configured.
-- Requests for PKR 300/year or an administrator-created first-year-free promo code.
-- Manual Easypaisa payment references. A reference is never treated as proof of receipt; an administrator must verify it and approve or deny each request.
-- Owner-scoped dashboard and A, AAAA, CNAME, TXT, and MX records, with strict server-side mapping to the approved `label.domains.weblitex.com` child name.
-- Admin actions only for the confirmed `mkuk2013@gmail.com` account, checked inside the Edge Function. Database RLS grants signed-in buyers access only to their own rows; administrative tables and actions stay behind the server endpoint.
+- Public label availability checks against marketplace reservations and, once securely configured, the fixed Spaceship `weblitex.com` zone.
+- Email/password sign-in. Public signup remains disabled until production SMTP delivery is configured and tested.
+- A request price of PKR 300 per year, or an admin-created promo code that waives the first year. All requests still need admin review and approval.
+- Manual Easypaisa instructions: send PKR 300 to **03363268833 · Mukesh Kumar**, then submit the transaction reference. A submitted reference is not proof of payment; an administrator verifies it manually.
+- Buyer-managed A, AAAA, CNAME, TXT, and MX records after approval. Buyers can manage only records for their own approved prefix; each request is bound to its authenticated owner.
+- Admin review and promo-code creation only for the confirmed `mkuk2013@gmail.com` account, checked server-side. Administrative tables and actions remain behind the Edge Function.
+
+## Product and DNS boundary
+
+The buyer submits only a DNS label (1–63 lowercase letters, digits, or internal hyphens). The server fixes the provider zone to `weblitex.com`; it never accepts a user-supplied root domain or DNS zone. In Spaceship, record names are relative to that root zone: for the purchased prefix `ali`, the buyer's host `@` maps to record name `ali`, and host `www` maps to `www.ali`. The corresponding names are `ali.weblitex.com` and `www.ali.weblitex.com`. A full-zone replacement, the `weblitex.com` apex, and another buyer's names are never targeted.
+
+The DNS API uses the fixed Spaceship base `https://spaceship.dev/api/v1`, checks only the fixed root zone, and sends one-record PUT/DELETE operations. Every record write/delete first verifies that the caller owns an approved, unexpired request. Host input is parsed as a relative name below that request's prefix; no client-provided domain is used to build the API path or record name.
 
 ## Current deployment readiness
 
-The owner-created public repository is `mkuk2013/domains-marketplace`; the intended Pages URL is `https://mkuk2013.github.io/domains-marketplace/`. The Supabase project is `hrslcotlxirarjqbjnmd` in `ap-south-1`; migrations `001`–`003` are applied and the `marketplace` Edge Function is active. Public signups remain paused while the owner-provided custom SMTP details are pending. Spaceship credentials have not yet been installed as Edge Function secrets, so availability checks do not consult the provider zone, request submission is paused, and DNS writes are unavailable. The banner and `config.js` flags keep the preview from presenting those gated features as live.
+The approved public repository is `mkuk2013/domains-marketplace`; the GitHub Pages path URL is `https://mkuk2013.github.io/domains-marketplace/`. The Supabase project is `hrslcotlxirarjqbjnmd` in `ap-south-1`; the marketplace schema migrations are applied and the `marketplace` Edge Function is active. Public signup remains paused pending the SMTP settings form and a verified production sender. Spaceship credentials are saved for setup but have **not** been installed as Supabase Edge Function secrets, so provider-zone checks, request submission, payment review actions that require a zone check, and DNS publishing remain gated. The public config flags `publicSignupEnabled` and `dnsPublishingExpected` stay `false`.
 
-No DNS changes were made to `weblitex.com`. The Pages custom-domain CNAME for `domains.weblitex.com` must be shown to the owner and approved before it is applied.
+The repository's existing `CNAME` file is for the marketplace website's separate Pages address `domains.weblitex.com`; it is not the product suffix. That file is unchanged. No records in the `weblitex.com` DNS zone were changed for this update. Do not alter any root-zone DNS records without first showing the exact proposed records and obtaining the owner's explicit confirmation.
 
 ## Deployment
 
-1. Apply `supabase/migrations/202609290001_marketplace.sql`, `202609290002_security_performance.sql`, and `202609290003_server_only_admin_access.sql` in order to a fresh project. They are already applied to the approved project.
-2. Deploy `supabase/functions/marketplace/index.ts` as the `marketplace` Edge Function with JWT gateway verification disabled **only because the function performs its own Supabase user-token verification**. Do not disable the user check in the function.
-3. In Supabase Edge Function Secrets, add `SPACESHIP_API_KEY` and `SPACESHIP_API_SECRET`. Never put either value in `config.js`, SQL, a query, a GitHub file, issue, or build log.
-4. Configure a custom SMTP sender in Supabase Auth. Keep email confirmation enabled. Add the GitHub Pages URL and, after DNS approval, `https://domains.weblitex.com/**` to the allowed redirect list.
-5. After custom SMTP delivery is tested and the admin account is confirmed, enable `publicSignupEnabled`. Keep `dnsPublishingExpected` off until the Spaceship secrets and zone check work and the owner has approved the exact Pages CNAME.
-6. Publish from the owner-created public repository `mkuk2013/domains-marketplace` using the `main` branch root. The anticipated path URL is `https://mkuk2013.github.io/domains-marketplace/`. Do not configure `domains.weblitex.com` until the owner approves the exact DNS record.
+1. For a fresh Supabase project, apply the three existing migrations in order: `202609290001_marketplace.sql`, `202609290002_security_performance.sql`, and `202609290003_server_only_admin_access.sql`. They are already applied to the approved project; the prefix is stored as the label, so changing the server-side suffix mapping does not require a schema migration.
+2. Deploy `supabase/functions/marketplace/index.ts` as the `marketplace` Edge Function. Keep gateway JWT verification disabled only because the function performs its own Supabase user-token verification; do not remove that user check.
+3. When separately authorized and ready, install `SPACESHIP_API_KEY` and `SPACESHIP_API_SECRET` as Supabase Edge Function secrets. Never put either value in browser config, SQL, source control, issues, or logs.
+4. Configure and test a custom SMTP sender in Supabase Auth; keep email confirmation enabled. Allow the GitHub Pages URL for auth redirects. Any additional site redirect or DNS change requires its own review and approval.
+5. Keep `publicSignupEnabled` off until verified email delivery is ready. Keep `dnsPublishingExpected` off until the provider secrets and zone check are set up and the owner has expressly approved the exact DNS changes involved.
+6. GitHub Pages publishes from the `main` branch root of `mkuk2013/domains-marketplace`. The path URL remains `https://mkuk2013.github.io/domains-marketplace/`.
 
-### Supabase function deployment notes
+## Local preview and operational notes
 
-The function calls the fixed Spaceship API base `https://spaceship.dev/api/v1`. It never accepts a domain name from a user. The domain path is always `weblitex.com`, while each submitted record's `name` is generated on the server and must be exactly the approved label or a validated relative hostname below `label.domains`. No apex or other customer's record can be selected by the browser payload. Only single-record PUT/DELETE requests are sent, not a replacement record-set payload.
+Serve this directory from a local HTTP server (for example, `python3 -m http.server 5500`) and open it in a browser. `http://localhost:5500` and the GitHub Pages origin are included in the Edge Function CORS allowlist. The browser uses only the project's public publishable key; privileged database and DNS operations stay server-side.
 
-### Local preview
-
-Serve this directory from a local HTTP server (for example `python3 -m http.server 5500`) and open it in a browser. `http://localhost:5500` is included in the Edge Function CORS allowlist. The backend uses the project's public publishable key; all privileged writes remain server-side.
-
-## Operational notes
-
-- A subdomain is a delegated name within `domains.weblitex.com`, not an independently registered domain.
-- DNS records are only editable after admin approval and only by the owner of that request.
-- Promo codes are generated by the Edge Function; only SHA-256 hashes are stored. The plaintext is returned once to the administrator.
-- A denied request does not automatically refund a submitted payment; any payment handling remains a human decision.
+- A requested name is one direct child of the registered `weblitex.com` root, not an independently registered domain.
+- DNS editing is available only after admin approval and only to the owner of that request.
+- Promo codes are generated by the Edge Function; only SHA-256 hashes are stored. The plaintext code is returned once to the administrator.
+- A denied request does not automatically refund a submitted payment; payment handling remains a human decision.
 - The app imposes a 50-record per-subdomain limit and TTLs from 60 through 86,400 seconds.
-- Read `IMPLEMENTATION_NOTES.md` for the official provider references used to implement the API boundaries and email requirements.
+- `IMPLEMENTATION_NOTES.md` records provider behavior and the DNS-safety boundary.

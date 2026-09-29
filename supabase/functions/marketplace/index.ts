@@ -9,8 +9,9 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? SUPABASE_SECRET
 const SPACESHIP_KEY = Deno.env.get("SPACESHIP_API_KEY") ?? "";
 const SPACESHIP_SECRET = Deno.env.get("SPACESHIP_API_SECRET") ?? "";
 const ADMIN_EMAIL = "mkuk2013@gmail.com";
+// Product names are one buyer-selected label directly below this fixed zone.
+// The browser never chooses or submits a root domain.
 const ROOT_DOMAIN = "weblitex.com";
-const CHILD_ZONE = "domains";
 const SPACESHIP_BASE = "https://spaceship.dev/api/v1";
 const RESERVED = new Set(["admin", "api", "autoconfig", "autodiscover", "cpanel", "domains", "ftp", "imap", "mail", "ns1", "ns2", "root", "smtp", "webmail", "www"]);
 const ALLOWED_ORIGINS = new Set([
@@ -113,15 +114,20 @@ async function zoneRecords(): Promise<Record<string, unknown>[]> {
 }
 
 function nameFor(label: string, host: string): string {
-  const suffix = `${label}.${CHILD_ZONE}`;
-  return host === "@" ? suffix : `${host}.${suffix}`;
+  if (host !== "@" && (host === ROOT_DOMAIN || host.endsWith(`.${ROOT_DOMAIN}`))) {
+    fail("DNS hosts must be relative to your purchased label, not a full domain name.", 422);
+  }
+  const name = host === "@" ? label : `${host}.${label}`;
+  if (`${name}.${ROOT_DOMAIN}`.length > 253) fail("That DNS host is too long for a name under weblitex.com.", 422);
+  return name;
 }
 
 function zoneHasChildName(records: Record<string, unknown>[], label: string): boolean {
-  const suffix = `${label}.${CHILD_ZONE}`.toLowerCase();
+  const absoluteZoneSuffix = `.${ROOT_DOMAIN}`;
   return records.some((record) => {
-    const name = String(record.name ?? "").replace(/\.$/, "").toLowerCase();
-    return name === suffix || name.endsWith(`.${suffix}`);
+    const name = String(record.name ?? "").trim().replace(/\.$/, "").toLowerCase();
+    const relativeName = name.endsWith(absoluteZoneSuffix) ? name.slice(0, -absoluteZoneSuffix.length) : name;
+    return relativeName === label || relativeName.endsWith(`.${label}`);
   });
 }
 
@@ -173,7 +179,7 @@ function parseDnsInput(input: Record<string, unknown>) {
   if (!["A", "AAAA", "CNAME", "TXT", "MX"].includes(type)) fail("Only A, AAAA, CNAME, TXT, and MX records are supported.", 422);
   const host = String(input.host ?? "@").trim().toLowerCase();
   if (host !== "@") {
-    if (host.length > 190 || host.split(".").some((part) => part.length > 63 || !/^[a-z0-9_](?:[a-z0-9_-]*[a-z0-9_])?$/.test(part))) fail("Host must be @ or a relative hostname such as www or _acme-challenge.", 422);
+    if (host.length > 190 || host.split(".").some((part) => part.length > 63 || !/^[a-z0-9_](?:[a-z0-9_-]*[a-z0-9_])?$/.test(part))) fail("Host must be @ or a relative hostname below your purchased label, such as www or _acme-challenge—not a full domain name.", 422);
   }
   const value = String(input.value ?? "").trim();
   if (!value || value.length > 2000 || /[\r\n\u0000-\u001f\u007f]/.test(value)) fail("Enter a valid record value.", 422);
@@ -305,12 +311,12 @@ async function handle(req: Request): Promise<Response> {
     if (action === "request_subdomain") {
       const label = normalizeLabel(body.label);
       const availability = await checkAvailability(db, label, true);
-      if (!availability.available) fail("That name is not available under domains.weblitex.com.", 409);
+      if (!availability.available) fail("That name is not available as a direct child of weblitex.com.", 409);
       const promo = String(body.promo_code ?? "").trim();
       const codeHash = promo ? await sha256Hex(promo) : null;
       const { data, error } = await db.rpc("create_marketplace_request", { p_user_id: user.id, p_label: label, p_code_hash: codeHash });
       if (error) fail(rpcMessage(error), error.message.includes("LABEL_TAKEN") ? 409 : 422);
-      return respond(req, { request: data, subdomain: `${label}.domains.weblitex.com` }, 201);
+      return respond(req, { request: data, subdomain: `${label}.weblitex.com` }, 201);
     }
 
     if (action === "submit_payment") {
