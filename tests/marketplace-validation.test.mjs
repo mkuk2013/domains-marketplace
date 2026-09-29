@@ -39,5 +39,26 @@ test("the restored RPC migration uses the original address and preserves server-
   assert.match(migration, /mkuk2013@gmail\.com/g);
   assert.doesNotMatch(migration, /weblitexagency@gmail\.com/i);
   assert.match(migration, /grant execute on function public\.admin_review_request\(uuid,uuid,text,text\) to service_role/i);
-  assert.match(edge, /from \"\.\/admin-access\.mjs\"/);
+  assert.match(edge, /from "\.\/admin-access\.mjs"/);
+});
+
+test("pending requests are marketplace-only, authenticated, collision-safe, and never claim unverified provider availability", async () => {
+  const app = await read("app.js");
+  const edge = await read("supabase/functions/marketplace/index.ts");
+  const migration = await read("supabase/migrations/202609290001_marketplace.sql");
+  const requestRoute = edge.slice(edge.indexOf('if (action === "request_subdomain")'), edge.indexOf('if (action === "submit_payment")'));
+  assert.match(edge, /const user = await currentUser\(req, db\);[\s\S]*if \(action === "request_subdomain"\)/);
+  assert.match(requestRoute, /checkMarketplaceAvailability\(db, label\)/);
+  assert.doesNotMatch(requestRoute, /checkAvailability\(|zoneRecords\(|spaceship\(/);
+  assert.match(requestRoute, /create_marketplace_request/);
+  assert.match(migration, /create unique index subdomain_requests_active_label_uq[\s\S]*on public\.subdomain_requests \(label\)[\s\S]*where status not in \('denied','cancelled'\)/i);
+  assert.match(app, /Provider-zone availability has not been verified\./);
+  assert.match(app, /Request this prefix/);
+  assert.match(app, /DNS provisioning happens only after approval/);
+  assert.doesNotMatch(app, /New requests are paused until DNS credentials/);
+  const html = await read("index.html");
+  assert.match(html, /Sign-up and prefix requests are open \(email confirmation required\)/);
+  assert.match(html, /Easypaisa proof is checked manually/);
+  assert.match(html, /DNS record management begins only after admin approval and Spaceship secret\/zone setup/);
+  assert.doesNotMatch(html, /Preview is live while the owner finishes email delivery/);
 });

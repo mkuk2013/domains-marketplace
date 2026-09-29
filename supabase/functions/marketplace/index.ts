@@ -131,16 +131,19 @@ function zoneHasChildName(records: Record<string, unknown>[], label: string): bo
   });
 }
 
-async function checkAvailability(db: SupabaseClient, rawLabel: unknown, requireZoneCheck = false) {
+async function checkMarketplaceAvailability(db: SupabaseClient, rawLabel: unknown) {
   const label = normalizeLabel(rawLabel);
   const { data, error } = await db.rpc("check_subdomain_availability", { p_label: label });
   if (error) fail("Could not check the name right now.", 500);
   const databaseAvailable = data?.available === true;
-  if (!databaseAvailable) return { available: false, zone_checked: false, label, reason: data?.reason ?? "already_reserved" };
-  if (!dnsConfigured()) {
-    if (requireZoneCheck) fail("Name reservation is temporarily unavailable while DNS publishing is being configured.", 503);
-    return { available: true, zone_checked: false, label };
-  }
+  return { available: databaseAvailable, zone_checked: false, label, ...(databaseAvailable ? {} : { reason: data?.reason ?? "already_reserved" }) };
+}
+
+async function checkAvailability(db: SupabaseClient, rawLabel: unknown) {
+  const marketplace = await checkMarketplaceAvailability(db, rawLabel);
+  if (!marketplace.available) return marketplace;
+  const { label } = marketplace;
+  if (!dnsConfigured()) return marketplace;
   const records = await zoneRecords();
   const zoneAvailable = !zoneHasChildName(records, label);
   return { available: zoneAvailable, zone_checked: true, label, ...(zoneAvailable ? {} : { reason: "already_in_dns_zone" }) };
@@ -310,8 +313,8 @@ async function handle(req: Request): Promise<Response> {
 
     if (action === "request_subdomain") {
       const label = normalizeLabel(body.label);
-      const availability = await checkAvailability(db, label, true);
-      if (!availability.available) fail("That name is not available as a direct child of weblitex.com.", 409);
+      const availability = await checkMarketplaceAvailability(db, label);
+      if (!availability.available) fail("A conflicting marketplace request already exists for that prefix.", 409);
       const promo = String(body.promo_code ?? "").trim();
       const codeHash = promo ? await sha256Hex(promo) : null;
       const { data, error } = await db.rpc("create_marketplace_request", { p_user_id: user.id, p_label: label, p_code_hash: codeHash });

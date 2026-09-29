@@ -8,7 +8,6 @@ const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const authDialog = $("#authDialog");
 const portalDialog = $("#portalDialog");
-const promoDialog = $("#promoDialog");
 let currentUser = null;
 let currentSession = null;
 let isAdmin = false;
@@ -67,13 +66,9 @@ function openPortal() {
 function showClaimPanel(label) {
   pendingLabel = label;
   $("#claimDomain").textContent = domainFor(label);
-  $("#claimPriceText").textContent = `PKR 300 for the first year, unless an admin-issued free-year code is accepted. Payment is reviewed manually.`;
+  $("#claimPriceText").textContent = "PKR 300 per year, or use an admin-issued free-year code. Your request stays pending while an administrator reviews payment and confirms name availability. DNS provisioning happens only after approval.";
   $("#claimPanel").hidden = true;
   if (!currentUser) { openAuth(); return; }
-  if (!APP_CONFIG.dnsPublishingExpected) {
-    $("#portalMessage").textContent = "New requests are paused until DNS credentials are securely configured and the existing zone can be checked.";
-    return;
-  }
   $("#claimPanel").hidden = false;
   $("#claimForm").reset();
 }
@@ -90,9 +85,9 @@ function updateSignupState() {
 
 function statusLabel(status) {
   return ({
-    awaiting_payment: "Payment needed",
-    payment_submitted: "Awaiting human review",
-    review_pending: "Free-year review",
+    awaiting_payment: "Pending · payment needed",
+    payment_submitted: "Pending · admin review",
+    review_pending: "Pending · admin review",
     approved: "Approved",
     denied: "Denied",
     cancelled: "Cancelled",
@@ -136,9 +131,12 @@ function paymentMarkup(request) {
 function renderRequest(request, adminCard = false) {
   const meta = adminCard ? `<p class="request-meta">Account: ${esc(request.account_email || "")}${request.payment_reference ? ` · Reference: <code>${esc(request.payment_reference)}</code>` : ""}</p>` : `<p class="request-meta">${Number(request.price_pkr) === 0 ? "First year waived by promo" : `PKR ${esc(request.price_pkr)} / year`} · Created ${new Date(request.created_at).toLocaleDateString()}</p>`;
   const actions = adminCard && ["awaiting_payment", "payment_submitted", "review_pending"].includes(request.status)
-    ? `<div class="admin-request-actions">${["payment_submitted", "review_pending"].includes(request.status) ? `<button type="button" class="button button-primary" data-review="approve" data-request="${esc(request.id)}">Approve &amp; publish</button>` : ""}<button type="button" class="button button-deny" data-review="deny" data-request="${esc(request.id)}">Deny request</button></div>`
+    ? `<div class="admin-request-actions">${["payment_submitted", "review_pending"].includes(request.status) ? `<button type="button" class="button button-primary" data-review="approve" data-request="${esc(request.id)}">Approve request</button>` : ""}<button type="button" class="button button-deny" data-review="deny" data-request="${esc(request.id)}">Deny request</button></div>`
     : "";
-  const details = adminCard ? `<p class="request-meta">Status: ${esc(request.payment_status)}${request.review_note ? ` · Note: ${esc(request.review_note)}` : ""}</p>` : paymentMarkup(request);
+  const pendingNote = ["awaiting_payment", "payment_submitted", "review_pending"].includes(request.status)
+    ? `<p class="request-meta">This request is pending administrator payment and name-availability review. DNS provisioning happens only after approval.</p>`
+    : "";
+  const details = adminCard ? `<p class="request-meta">Status: ${esc(request.payment_status)}${request.review_note ? ` · Note: ${esc(request.review_note)}` : ""}</p>` : `${paymentMarkup(request)}${pendingNote}`;
   const approved = request.status === "approved" ? `<div class="request-footer"><span>Approved · valid until ${request.expires_at ? new Date(request.expires_at).toLocaleDateString() : "renewal date pending"}</span><span>Manage below ↓</span></div>${renderDns(request)}` : "";
   return `<article class="request-card"><div class="request-card-top"><div><h4 class="request-name">${esc(domainFor(request.label))}</h4>${meta}</div><span class="status-badge ${statusClass(request.status)}">${esc(statusLabel(request.status))}</span></div>${details}${actions}${approved}</article>`;
 }
@@ -176,14 +174,19 @@ function showAvailability(result) {
   node.hidden = false;
   node.className = `search-result ${result.available ? "ok" : "bad"}`;
   if (!result.available) {
-    node.innerHTML = `<strong>${esc(result.label || "That name")} is not available.</strong> Try another label.`;
+    const label = result.label || "That name";
+    const message = result.reason === "already_in_dns_zone"
+      ? `An existing provider-zone DNS record conflicts with ${esc(domainFor(label))}. Try another prefix.`
+      : result.reason === "invalid_or_reserved"
+        ? `${esc(label)} is not a valid marketplace prefix. Try another label.`
+        : `A conflicting marketplace request already exists for ${esc(domainFor(label))}. Try another prefix.`;
+    node.innerHTML = `<strong>${message}</strong>`;
     return;
   }
-  if (!result.zone_checked) {
-    node.innerHTML = `<strong>${esc(domainFor(result.label))} looks open in the marketplace.</strong> Final reservation is paused until the DNS zone and publishing credentials are configured.`;
-    return;
-  }
-  node.innerHTML = `<strong>${esc(domainFor(result.label))} is available.</strong> PKR 300 for the first year. <button type="button" data-claim-label="${esc(result.label)}">Continue to claim →</button>`;
+  const providerNote = result.zone_checked
+    ? "A provider-zone check found no matching DNS record."
+    : "Provider-zone availability has not been verified.";
+  node.innerHTML = `<strong>No conflicting marketplace request was found for ${esc(domainFor(result.label))}.</strong> ${providerNote} An administrator reviews payment and name availability; DNS provisioning happens only after approval. <button type="button" data-claim-label="${esc(result.label)}">Request this prefix →</button>`;
 }
 
 $("#searchForm").addEventListener("submit", async (event) => {
@@ -196,12 +199,6 @@ $("#searchForm").addEventListener("submit", async (event) => {
   try {
     const result = await callApi("check_availability", { label });
     showAvailability(result);
-    if (result.available && result.zone_checked) {
-      pendingLabel = result.label;
-      $("#promoDialogDomain").textContent = domainFor(result.label);
-      $("#promoDialogMessage").textContent = "Reserve it and finish your request from your dashboard. Payment and all approvals are handled by a person.";
-      if (!promoDialog.open) promoDialog.showModal();
-    }
   } catch (error) {
     showAvailability({ available: false, label });
     $("#searchResult").innerHTML = `<strong>We couldn’t check that name right now.</strong> ${esc(error.message)}`;
@@ -213,19 +210,15 @@ $("#searchForm").addEventListener("submit", async (event) => {
 
 $("#searchResult").addEventListener("click", (event) => {
   const button = event.target.closest("[data-claim-label]");
-  if (button) showClaimPanel(button.dataset.claimLabel);
-});
-
-$("#continueClaim").addEventListener("click", () => {
-  promoDialog.close();
+  if (!button) return;
+  pendingLabel = button.dataset.claimLabel;
   if (!currentUser) openAuth();
-  else { openPortal(); showClaimPanel(pendingLabel); }
+  else openPortal();
 });
 
 $("#claimForm").addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!currentUser || !pendingLabel) return;
-  if (!APP_CONFIG.dnsPublishingExpected) { showToast("Marketplace requests are paused during setup."); return; }
   const form = event.currentTarget;
   const button = form.querySelector("button[type=submit]");
   button.disabled = true;
@@ -233,7 +226,7 @@ $("#claimForm").addEventListener("submit", async (event) => {
     const data = await callApi("request_subdomain", { label: pendingLabel, promo_code: form.elements.promo_code.value.trim() });
     pendingLabel = "";
     $("#claimPanel").hidden = true;
-    showToast(data.request?.price_pkr === 0 ? "Free-year request sent for admin review." : "Request created. Submit your Easypaisa reference below.");
+    showToast(data.request?.price_pkr === 0 ? "Free-year request is pending administrator payment and availability review." : "Pending request created. Submit your Easypaisa reference for admin review.");
     await refreshDashboard();
   } catch (error) {
     $("#portalMessage").textContent = error.message;
@@ -412,7 +405,7 @@ $("#startClaim").addEventListener("click", () => { $("#labelInput").focus(); win
 $("#contactAdmin").addEventListener("click", () => { location.href = "mailto:mkuk2013@gmail.com?subject=Weblitex%20Domains%20question"; });
 
 $$("[data-close]").forEach((button) => button.addEventListener("click", () => $(`#${button.dataset.close}`).close()));
-[authDialog, portalDialog, promoDialog].forEach((dialog) => dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); }));
+[authDialog, portalDialog].forEach((dialog) => dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); }));
 
 $("#mobileMenu").addEventListener("click", () => {
   const nav = $(".main-nav");
