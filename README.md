@@ -9,7 +9,7 @@ A mobile-first marketplace for **one product only: a prefix subdomain directly u
 - A request price of PKR 300 per year, or an admin-created promo code that waives the first year. All requests still need admin review and approval.
 - Manual Easypaisa instructions: send PKR 300 to **03363268833 · Mukesh Kumar**, then submit the transaction reference. A submitted reference is not proof of payment; an administrator verifies it manually.
 - Buyer-managed A, AAAA, CNAME, TXT, and MX records after approval. Buyers can manage only records for their own approved prefix; each request is bound to its authenticated owner.
-- Admin review and promo-code creation only for the confirmed `weblitexagency@gmail.com` account, checked in both the Edge Function and the server-only review RPC.
+- Admin review and promo-code creation only for the confirmed `mkuk2013@gmail.com` account, checked in both the Edge Function and the server-only review RPC.
 - The supplied `assets/weblitex-logo.jpg` is used in the site header/footer and as the source for the ICO, PNG, and Apple touch favicons.
 
 ## Product and DNS boundary
@@ -20,13 +20,13 @@ The DNS API uses the fixed Spaceship base `https://spaceship.dev/api/v1`, checks
 
 ## Current deployment readiness
 
-The approved public repository is `mkuk2013/domains-marketplace`; the GitHub Pages path URL is `https://mkuk2013.github.io/domains-marketplace/`. The Supabase project is `hrslcotlxirarjqbjnmd` in `ap-south-1`; migrations `001`–`003` are applied and `004` aligns the review RPC with the new admin email. The `marketplace` Edge Function is active. Public signup remains paused; the SMTP settings form is still pending. Spaceship secrets have **not** been installed as Supabase Edge Function secrets, so provider-zone checks, request submission, payment review actions that require a zone check, and DNS publishing remain gated. The public config flags `publicSignupEnabled` and `dnsPublishingExpected` stay `false`.
+The approved public repository is `mkuk2013/domains-marketplace`; the GitHub Pages path URL is `https://mkuk2013.github.io/domains-marketplace/`. The Supabase project is `hrslcotlxirarjqbjnmd` in `ap-south-1`; migration `005` restores the original `mkuk2013@gmail.com` address in both database admin checks after migration `004`. The `marketplace` Edge Function is active. Public signup remains paused; the SMTP settings form is still pending. Spaceship secrets have **not** been installed as Supabase Edge Function secrets, so provider-zone checks, request submission, payment review actions that require a zone check, and DNS publishing remain gated. The public config flags `publicSignupEnabled` and `dnsPublishingExpected` stay `false`.
 
 The repository's existing `CNAME` file is for the marketplace website's separate Pages address `domains.weblitex.com`; it is not the product suffix. That file is unchanged. No records in the `weblitex.com` DNS zone were changed for this update. Do not alter any root-zone DNS records without first showing the exact proposed records and obtaining the owner's explicit confirmation.
 
 ## Deployment
 
-1. For a fresh Supabase project, apply migrations `202609290001_marketplace.sql`, `202609290002_security_performance.sql`, `202609290003_server_only_admin_access.sql`, and `202609290004_update_marketplace_admin_email.sql` in order. Migrations `001`–`003` are already applied to the approved project; `004` is the forward-only update that aligns both database admin checks with the new email.
+1. For a fresh Supabase project, apply migrations `202609290001_marketplace.sql`, `202609290002_security_performance.sql`, `202609290003_server_only_admin_access.sql`, `202609290004_update_marketplace_admin_email.sql`, and `202609290005_restore_original_admin_email.sql` in order. Migration `005` is the forward-only update that restores both database admin checks to the original confirmed owner address.
 2. Deploy `supabase/functions/marketplace/index.ts` together with `supabase/functions/marketplace/admin-access.mjs` as the `marketplace` Edge Function. Keep gateway JWT verification disabled only because the function performs its own Supabase user-token verification; do not remove that user check.
 3. When separately authorized and ready, install `SPACESHIP_API_KEY` and `SPACESHIP_API_SECRET` as Supabase Edge Function secrets. Never put either value in browser config, SQL, source control, issues, or logs.
 4. Configure and test a custom SMTP sender in Supabase Auth; keep email confirmation enabled. Allow the GitHub Pages URL for auth redirects. Any additional site redirect or DNS change requires its own review and approval.

@@ -7,11 +7,11 @@ import { ADMIN_EMAIL, isAdmin } from "../supabase/functions/marketplace/admin-ac
 const root = fileURLToPath(new URL("../", import.meta.url));
 const read = (path) => readFile(new URL(path, `file://${root}`), "utf8");
 
- test("only the confirmed new administrator address receives admin access", () => {
-  assert.equal(ADMIN_EMAIL, "weblitexagency@gmail.com");
+test("only the confirmed original administrator address receives admin access", () => {
+  assert.equal(ADMIN_EMAIL, "mkuk2013@gmail.com");
   assert.equal(isAdmin({ email: ADMIN_EMAIL, email_confirmed_at: "2026-09-29T00:00:00Z" }), true);
-  assert.equal(isAdmin({ email: "WEBLITEXAGENCY@GMAIL.COM", email_confirmed_at: "2026-09-29T00:00:00Z" }), true);
-  assert.equal(isAdmin({ email: "mkuk2013@gmail.com", email_confirmed_at: "2026-09-29T00:00:00Z" }), false);
+  assert.equal(isAdmin({ email: "MKUK2013@GMAIL.COM", email_confirmed_at: "2026-09-29T00:00:00Z" }), true);
+  assert.equal(isAdmin({ email: "weblitexagency@gmail.com", email_confirmed_at: "2026-09-29T00:00:00Z" }), false);
   assert.equal(isAdmin({ email: ADMIN_EMAIL, email_confirmed_at: null }), false);
   assert.equal(isAdmin({ email: null, email_confirmed_at: "2026-09-29T00:00:00Z" }), false);
 });
@@ -33,11 +33,11 @@ test("signup and DNS publishing stay paused", async () => {
   assert.match(config, /dnsPublishingExpected:\s*false/);
 });
 
-test("the deployed RPC migration uses the new address and preserves server-only access", async () => {
-  const migration = await read("supabase/migrations/202609290004_update_marketplace_admin_email.sql");
+test("the restored RPC migration uses the original address and preserves server-only access", async () => {
+  const migration = await read("supabase/migrations/202609290005_restore_original_admin_email.sql");
   const edge = await read("supabase/functions/marketplace/index.ts");
-  assert.match(migration, /weblitexagency@gmail\.com/g);
-  assert.doesNotMatch(migration, /mkuk2013@gmail\.com/i);
+  assert.match(migration, /mkuk2013@gmail\.com/g);
+  assert.doesNotMatch(migration, /weblitexagency@gmail\.com/i);
   assert.match(migration, /grant execute on function public\.admin_review_request\(uuid,uuid,text,text\) to service_role/i);
   assert.match(edge, /from \"\.\/admin-access\.mjs\"/);
 });
