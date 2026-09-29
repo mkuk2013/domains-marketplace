@@ -1,0 +1,2 @@
+[functions.marketplace]
+verify_jwt = false

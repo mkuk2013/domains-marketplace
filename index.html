@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f6f0">
+  <meta name="description" content="Find a memorable subdomain under domains.weblitex.com. PKR 300 per year, with real DNS records and human-reviewed Easypaisa payments.">
+  <title>Weblitex Domains — A better home for your next idea</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="setup-banner" id="setupBanner" hidden>
+    Preview is live while the owner finishes email delivery and DNS publishing setup. No payments or DNS changes are automated.
+  </div>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Weblitex Domains home">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>weblitex<span class="brand-sub">DOMAINS</span></span>
+    </a>
+    <nav class="main-nav" aria-label="Main navigation">
+      <a href="#how">How it works</a>
+      <a href="#dns">DNS records</a>
+      <a href="#pricing">Pricing</a>
+    </nav>
+    <button class="button button-outline header-signin" id="signInTop" type="button">Sign in <span aria-hidden="true">↗</span></button>
+    <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Open menu" aria-expanded="false"><span></span><span></span></button>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="eyebrow-dot"></span> YOUR CORNER OF THE WEB</p>
+        <h1>A good idea deserves<br><em>a name of its own.</em></h1>
+        <p class="hero-text">Claim a clean little address under <strong>domains.weblitex.com</strong>. Point it anywhere, keep your records yours, and get a real name that resolves.</p>
+        <form id="searchForm" class="search-box" autocomplete="off">
+          <label class="sr-only" for="labelInput">Choose a subdomain name</label>
+          <span class="search-prefix">https://</span>
+          <input id="labelInput" name="label" type="text" minlength="1" maxlength="63" pattern="[A-Za-z0-9-]+" placeholder="your-idea" autocapitalize="none" spellcheck="false" required>
+          <span class="search-suffix">.domains.weblitex.com</span>
+          <button class="button button-primary" type="submit" id="checkButton">Check name <span aria-hidden="true">→</span></button>
+        </form>
+        <p class="search-hint" id="searchHint">One name. PKR 300 / year. No auto-charges, no surprise renewals.</p>
+        <div class="search-result" id="searchResult" aria-live="polite" hidden></div>
+      </div>
+      <div class="hero-art" aria-label="Abstract network visual">
+        <div class="art-glow"></div>
+        <div class="art-image"></div>
+        <div class="art-label art-label-top"><span class="pulse"></span> MARKETPLACE PREVIEW</div>
+        <div class="art-domain-card">
+          <div class="domain-card-top"><span class="mini-dot"></span> YOUR NEXT ADDRESS</div>
+          <div class="domain-example"><span>studio</span><b>.domains</b></div>
+          <div class="domain-rule"></div>
+          <div class="domain-card-meta"><span>Owner-managed DNS</span><span class="status-live">AFTER APPROVAL</span></div>
+        </div>
+        <div class="art-label art-label-bottom"><span class="route-mark">↗</span> BUILT TO BELONG TO YOU</div>
+      </div>
+    </section>
+
+    <section class="proof-strip wrap" aria-label="Marketplace features">
+      <div><span class="proof-number">01</span><span><strong>One simple price</strong><small>PKR 300 per year</small></span></div>
+      <div><span class="proof-number">02</span><span><strong>Real DNS, not a redirect</strong><small>Five useful record types</small></span></div>
+      <div><span class="proof-number">03</span><span><strong>Human-reviewed payments</strong><small>Easypaisa · no auto-approval</small></span></div>
+    </section>
+
+    <section class="section section-how wrap" id="how">
+      <div class="section-heading">
+        <div><p class="eyebrow">A LITTLE LESS FRICTION</p><h2>Four steps. <em>Yours to run.</em></h2></div>
+        <p>From a name in your notes to a live address you can actually configure.</p>
+      </div>
+      <div class="steps-grid">
+        <article class="step-card"><span class="step-index">01 / SEARCH</span><div class="step-icon icon-search" aria-hidden="true">⌕</div><h3>Find your name</h3><p>Check a label and reserve it under the verified <strong>.domains.weblitex.com</strong> suffix.</p></article>
+        <article class="step-card"><span class="step-index">02 / SUBMIT</span><div class="step-icon icon-pay" aria-hidden="true">₨</div><h3>Send payment</h3><p>Pay PKR 300 by Easypaisa, then submit the transaction reference for a person to review.</p></article>
+        <article class="step-card"><span class="step-index">03 / REVIEW</span><div class="step-icon icon-check" aria-hidden="true">✓</div><h3>Wait for approval</h3><p>Your request stays pending until the administrator verifies the payment—or validates a free-year code.</p></article>
+        <article class="step-card"><span class="step-index">04 / CONFIGURE</span><div class="step-icon icon-dns" aria-hidden="true">⌘</div><h3>Point it your way</h3><p>After approval, add and manage A, AAAA, CNAME, TXT, or MX records from your dashboard.</p></article>
+      </div>
+    </section>
+
+    <section class="dns-section" id="dns">
+      <div class="wrap dns-layout">
+        <div class="dns-copy">
+          <p class="eyebrow eyebrow-light">YOUR NAME, YOUR RECORDS</p>
+          <h2>Point it where<br><em>your work lives.</em></h2>
+          <p>A subdomain is only useful if it can go where you need it. After your request is approved, manage the records for your own label—without touching anyone else’s.</p>
+          <button class="button button-lime" id="openDashboardDns" type="button">Open my dashboard <span aria-hidden="true">↗</span></button>
+        </div>
+        <div class="records-card">
+          <div class="records-head"><span>AVAILABLE RECORDS</span><span class="record-head-light">YOUR ZONE · YOUR CALL</span></div>
+          <div class="record-row"><span class="record-type">A</span><strong>IPv4 address</strong><small>203.0.113.10</small></div>
+          <div class="record-row"><span class="record-type">AAAA</span><strong>IPv6 address</strong><small>2001:db8::10</small></div>
+          <div class="record-row"><span class="record-type">CNAME</span><strong>Canonical name</strong><small>app.example.net</small></div>
+          <div class="record-row"><span class="record-type">TXT</span><strong>Verification / text</strong><small>site-verification=…</small></div>
+          <div class="record-row"><span class="record-type">MX</span><strong>Mail exchange</strong><small>Priority + host</small></div>
+          <div class="records-foot"><span>DEFAULT TTL</span><strong>1 hour</strong><span class="green-check">●</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section pricing-section wrap" id="pricing">
+      <div class="pricing-intro">
+        <p class="eyebrow">STRAIGHTFORWARD BY DESIGN</p>
+        <h2>One address.<br><em>One honest price.</em></h2>
+        <p>Promotional codes are created by the administrator and waive the first year. Every request still goes through the same approval process.</p>
+      </div>
+      <article class="price-card">
+        <div class="price-card-top"><span class="price-chip">YEARLY</span><span class="price-mark">↗</span></div>
+        <div class="price-amount"><span>PKR</span> 300 <small>/ year</small></div>
+        <p class="price-under">For one subdomain under <strong>domains.weblitex.com</strong></p>
+        <ul><li><span>✓</span> Real, editable DNS records</li><li><span>✓</span> Manual payment review</li><li><span>✓</span> A, AAAA, CNAME, TXT, and MX</li><li><span>✓</span> First year free with an admin-issued code</li></ul>
+        <button class="button button-primary button-wide" id="startClaim" type="button">Find your name <span aria-hidden="true">→</span></button>
+      </article>
+    </section>
+
+    <section class="trust-band">
+      <div class="wrap trust-content"><span class="trust-seal" aria-hidden="true">WL</span><p><strong>A real person reviews every payment.</strong><br>Submitting a reference does not mark a payment as received. Your subdomain is approved only after manual verification.</p><button class="text-button" id="contactAdmin" type="button">Questions? Contact the administrator <span aria-hidden="true">↗</span></button></div>
+    </section>
+  </main>
+
+  <footer class="site-footer wrap">
+    <a class="brand brand-footer" href="#top"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>weblitex<span class="brand-sub">DOMAINS</span></span></a>
+    <p>Small addresses for big plans.<br><small>Subdomains are not independently registered domain names.</small></p>
+    <div class="footer-links"><a href="#how">How it works</a><a href="#dns">DNS</a><a href="#pricing">Pricing</a><button class="footer-login" id="signInFooter" type="button">Account</button></div>
+  </footer>
+
+  <dialog class="modal" id="authDialog" aria-labelledby="authTitle">
+    <div class="modal-shell auth-shell">
+      <button class="modal-close" data-close="authDialog" type="button" aria-label="Close">×</button>
+      <p class="eyebrow">WELCOME TO YOUR NEXT ADDRESS</p>
+      <h2 id="authTitle">Sign in <em>to continue.</em></h2>
+      <p class="modal-intro" id="authIntro">Use your email and password to open your Weblitex Domains dashboard.</p>
+      <form id="authForm" class="form-stack">
+        <label>Email address<input id="authEmail" type="email" autocomplete="email" required></label>
+        <label>Password<input id="authPassword" type="password" minlength="8" autocomplete="current-password" required></label>
+        <button class="button button-primary button-wide" type="submit" id="authSubmit">Sign in <span aria-hidden="true">→</span></button>
+      </form>
+      <div class="auth-links"><button type="button" class="text-button" id="toggleAuthMode">Create an account</button><button type="button" class="text-button" id="resetPassword">Forgot password?</button></div>
+      <p class="form-note" id="authNote" aria-live="polite"></p>
+    </div>
+  </dialog>
+
+  <dialog class="modal portal-modal" id="portalDialog" aria-labelledby="portalTitle">
+    <div class="modal-shell portal-shell">
+      <div class="portal-top"><div><p class="eyebrow">YOUR WEBLITEX SPACE</p><h2 id="portalTitle">Your dashboard</h2><p id="portalIdentity" class="portal-identity"></p></div><button class="modal-close modal-close-static" data-close="portalDialog" type="button" aria-label="Close">×</button></div>
+      <div id="portalMessage" class="portal-message" aria-live="polite"></div>
+      <section id="claimPanel" class="claim-panel" hidden>
+        <div><p class="eyebrow">MAKE IT YOURS</p><h3>Claim <span id="claimDomain"></span></h3><p id="claimPriceText">PKR 300 for the first year. Payment is reviewed manually.</p></div>
+        <form id="claimForm" class="claim-form">
+          <label>Free-year promo code <span class="optional">optional</span><input name="promo_code" type="text" placeholder="WLX-…" autocapitalize="characters"></label>
+          <button class="button button-primary" type="submit">Submit request <span aria-hidden="true">→</span></button>
+        </form>
+      </section>
+      <section id="requestsSection" class="portal-section"><div class="portal-section-head"><div><p class="eyebrow">YOUR REQUESTS</p><h3>Subdomains</h3></div><button class="button button-small button-outline" id="portalSignOut" type="button">Sign out</button></div><div id="requestList" class="request-list"></div></section>
+      <section id="adminSection" class="portal-section admin-section" hidden>
+        <div class="portal-section-head"><div><p class="eyebrow">ADMIN ONLY</p><h3>Marketplace review</h3></div><span class="admin-pill">ADMIN</span></div>
+        <div class="admin-layout"><div><h4>Requests &amp; payments</h4><div id="adminRequests" class="request-list"></div></div><div class="promo-panel"><h4>Create a free-year code</h4><p>Each code waives PKR 300 for the first year. The generated code is shown once.</p><form id="promoForm" class="form-stack"><label>Maximum uses<input name="max_uses" type="number" min="1" max="10000" value="1" required></label><label>Expiry date <span class="optional">optional</span><input name="expires_at" type="date"></label><button class="button button-primary" type="submit">Generate code <span aria-hidden="true">→</span></button></form><div id="promoCreated" class="promo-created" hidden></div></div></div>
+        <div class="admin-users-panel"><h4>Registered accounts <span>(latest 200)</span></h4><div id="adminUsers" class="admin-user-list"></div></div>
+      </section>
+    </div>
+  </dialog>
+
+  <dialog class="modal" id="promoDialog" aria-labelledby="promoDialogTitle"><div class="modal-shell promo-result-shell"><button class="modal-close" data-close="promoDialog" type="button" aria-label="Close">×</button><p class="eyebrow">NAME CHECKED</p><h2 id="promoDialogTitle">That name is <em>available.</em></h2><p class="promo-dialog-domain" id="promoDialogDomain"></p><p id="promoDialogMessage" class="modal-intro">Reserve it and finish your request from your dashboard.</p><button class="button button-primary button-wide" id="continueClaim" type="button">Continue to claim <span aria-hidden="true">→</span></button><button class="text-button promo-dismiss" data-close="promoDialog" type="button">Keep browsing</button></div></dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
