@@ -27,9 +27,9 @@ test("header and footer use the supplied logo and favicon derivatives", async ()
   }
 });
 
-test("signup and DNS publishing stay paused", async () => {
+test("buyer signup is enabled while DNS publishing stays paused", async () => {
   const config = await read("config.js");
-  assert.match(config, /publicSignupEnabled:\s*false/);
+  assert.match(config, /publicSignupEnabled:\s*true/);
   assert.match(config, /dnsPublishingExpected:\s*false/);
 });
 
