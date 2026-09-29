@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
+import { isAdmin as hasAdminAccess } from "./admin-access.mjs";
 
 const PROJECT_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SECRET_KEYS = (() => {
@@ -8,7 +9,6 @@ const SUPABASE_SECRET_KEYS = (() => {
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? SUPABASE_SECRET_KEYS.default ?? "";
 const SPACESHIP_KEY = Deno.env.get("SPACESHIP_API_KEY") ?? "";
 const SPACESHIP_SECRET = Deno.env.get("SPACESHIP_API_SECRET") ?? "";
-const ADMIN_EMAIL = "mkuk2013@gmail.com";
 // Product names are one buyer-selected label directly below this fixed zone.
 // The browser never chooses or submits a root domain.
 const ROOT_DOMAIN = "weblitex.com";
@@ -60,7 +60,7 @@ async function currentUser(req: Request, db: SupabaseClient) {
 }
 
 function isAdmin(user: { email?: string | null; email_confirmed_at?: string | null }): boolean {
-  return (user.email ?? "").toLowerCase() === ADMIN_EMAIL && !!user.email_confirmed_at;
+  return hasAdminAccess(user);
 }
 
 async function sha256Hex(value: string): Promise<string> {

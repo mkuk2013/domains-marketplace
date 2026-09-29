@@ -8,7 +8,7 @@
 - **Supabase Auth email:** the official SMTP guide states that the built-in sender is best-effort/non-production and limited; custom SMTP is required for public signup verification and password recovery. Keep email confirmation enabled. Source: https://supabase.com/docs/guides/auth/auth-smtp
 - **Auth redirect allowlist:** Supabase only redirects to configured URLs; the default Site URL is used when no redirect is passed. Source: https://supabase.com/docs/guides/auth/redirect-urls
 
-The marketplace website's existing GitHub Pages `CNAME` file points to the separate site address `domains.weblitex.com`; it is not a product suffix and was not changed. No Spaceship API write, root DNS change, or signup activation was performed for this update. Do not change any `weblitex.com` zone records without showing the exact proposed changes and receiving explicit confirmation.
+The marketplace website's existing GitHub Pages `CNAME` file points to the separate site address `domains.weblitex.com`; it is not a product suffix and was not changed. The supplied `assets/weblitex-logo.jpg` is the header/footer logo source and is also used to produce the favicon assets. Admin authorization is limited to the confirmed `weblitexagency@gmail.com` address in the Edge Function and the server-only database review RPC; migration `202609290004_update_marketplace_admin_email.sql` updates the existing database checks without rewriting applied migration history. No Spaceship API write, root DNS change, or signup activation was performed for this update. Do not change any `weblitex.com` zone records without showing the exact proposed changes and receiving explicit confirmation.
 
 ## Supabase Free plan (verified 2026-09-29)
 
@@ -19,4 +19,4 @@ Supabase's official pricing page currently lists the Free plan at $0/month, with
 - Prior security checks after migrations `002` and `003` reported no security-advisor findings; the performance advisor reported only unused-index informational items.
 - Prior read-only smoke tests confirmed the public availability endpoint returns HTTP 200, unauthenticated dashboard requests return HTTP 401, and anonymous direct calls to the availability/admin helper RPCs are denied.
 - The approved public repository is `mkuk2013/domains-marketplace`; the Supabase project is `hrslcotlxirarjqbjnmd`.
-- Public signup remains disabled pending custom SMTP details. Spaceship credentials are saved for setup but have not been installed as Edge Function secrets; zone checks, request submission, approvals, and DNS writes remain gated.
+- Public signup remains disabled and the SMTP settings form is still pending. Spaceship secrets have not been installed as Edge Function secrets; zone checks, request submission, approvals, and DNS writes remain gated. Run `node --test tests/*.test.mjs` to verify admin authorization, logo/favicon wiring, and paused feature flags.
